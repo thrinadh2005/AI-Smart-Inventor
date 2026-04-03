@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, AlertTriangle, Clock, CheckCircle, Send, RefreshCw } from 'lucide-react';
-import axios from 'axios';
+import { AlertTriangle, Clock, CheckCircle, Send, RefreshCw } from 'lucide-react';
+import api from '../services/api';
 
 interface ReorderItem {
   id: number;
@@ -107,7 +107,7 @@ export const ReorderPage: React.FC<ReorderPageProps> = ({ language }) => {
 
   const fetchReorderList = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/reorder');
+      const res = await api.get('/reorder');
       setReorderList(res.data);
     } catch (err) {
       console.error('Error fetching reorder list:', err);
@@ -132,7 +132,7 @@ export const ReorderPage: React.FC<ReorderPageProps> = ({ language }) => {
       console.log('WhatsApp message:', message);
       
       // Create alert in database
-      await axios.post('http://localhost:5000/api/alerts', {
+      await api.post('/alerts', {
         productId: item.id,
         message: message
       });
@@ -270,7 +270,6 @@ const ReorderCard: React.FC<ReorderCardProps> = ({
   onSendWhatsApp,
   onMarkComplete,
   sendingWhatsApp,
-  language,
   translations: t
 }) => {
   const estimatedCost = item.suggestedQuantity * item.price;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, Calendar, DollarSign, Package, BarChart3, Filter } from 'lucide-react';
-import axios from 'axios';
+import { TrendingUp, DollarSign, Package, BarChart3 } from 'lucide-react';
+import api from '../services/api';
 import { Line, Doughnut } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -123,7 +123,7 @@ export const SalesPage: React.FC<SalesPageProps> = ({ language }) => {
 
   const fetchSalesData = async () => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/sales/analytics?period=${period}`);
+      const res = await api.get(`/sales/analytics?period=${period}`);
       setSalesData(res.data);
     } catch (err) {
       console.error('Error fetching sales data:', err);

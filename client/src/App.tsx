@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Package, 
@@ -8,17 +8,14 @@ import {
   Settings, 
   Bell, 
   Plus, 
-  Mic, 
   AlertCircle,
   Wifi,
   WifiOff,
   RefreshCw,
-  User,
+  User as UserIcon,
   LogOut,
   CreditCard,
-  Shield,
-  Menu,
-  X
+  Shield
 } from 'lucide-react';
 import './App.css';
 
@@ -31,29 +28,17 @@ import { ReorderPage } from './components/ReorderPage';
 import { VoiceInput } from './components/VoiceInput';
 import { useOfflineSync } from './hooks/useOfflineSync';
 import { AuthModal, UserProfile } from './components/AuthComponents';
+import type { User } from './components/AuthComponents';
 import { BillingDashboard } from './components/BillingComponents';
 
-// Types
-interface UserData {
-  id: number;
-  email: string;
-  name: string;
-  phone?: string;
-  shop_name?: string;
-  shop_address?: string;
-  business_type?: string;
-  subscription_plan: string;
-  subscription_status: string;
-}
-
 // Sidebar/Navigation Component
-const Sidebar: React.FC<{ language: string; user: UserData | null; onLogout: () => void }> = ({ language, user, onLogout }) => {
+const Sidebar: React.FC<{ language: string }> = ({ language }) => {
   const location = useLocation();
   const t = {
-    EN: { dashboard: 'Dashboard', inventory: 'Inventory', sales: 'Sales', reorder: 'Reorder', settings: 'Settings', logout: 'Logout' },
-    TE: { dashboard: 'డాష్‌బోర్డ్', inventory: 'ఇన్వెంటరీ', sales: 'అమ్మకాలు', reorder: 'రీఆర్డర్', settings: 'సెట్టింగులు', logout: 'లాగ్ అవుట్' },
-    HI: { dashboard: 'डैशबोर्ड', inventory: 'इन्वेंटरी', sales: 'बिक्री', reorder: 'रीऑर्डर', settings: 'सेटिंग्स', logout: 'लॉग आउट' }
-  }[language as 'EN' | 'TE' | 'HI'] || { dashboard: 'Dashboard', inventory: 'Inventory', sales: 'Sales', reorder: 'Reorder', settings: 'Settings', logout: 'Logout' };
+    EN: { dashboard: 'Dashboard', inventory: 'Inventory', sales: 'Sales', reorder: 'Reorder', settings: 'Settings' },
+    TE: { dashboard: 'డాష్‌బోర్డ్', inventory: 'ఇన్వెంటరీ', sales: 'అమ్మకాలు', reorder: 'రీఆర్డర్', settings: 'సెట్టింగులు' },
+    HI: { dashboard: 'डैशबोर्ड', inventory: 'इन्वेंटरी', sales: 'बिक्री', reorder: 'रीऑर्डर', settings: 'सेटिंग्स' }
+  }[language as 'EN' | 'TE' | 'HI'] || { dashboard: 'Dashboard', inventory: 'Inventory', sales: 'Sales', reorder: 'Reorder', settings: 'Settings' };
 
   return (
     <nav className="side-nav glass">
@@ -83,27 +68,24 @@ const Sidebar: React.FC<{ language: string; user: UserData | null; onLogout: () 
 };
 
 // Main Dashboard Content
-const Dashboard: React.FC<{ language: 'EN' | 'TE' | 'HI'; user: UserData | null }> = ({ language, user }) => {
+const Dashboard: React.FC<{ language: 'EN' | 'TE' | 'HI'; user: User }> = ({ language }) => {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showSalesModal, setShowSalesModal] = useState(false);
-  const [syncing, setSyncing] = useState(false);
   const [stats, setStats] = useState({ todaySales: 0, lowStockCount: 0, alertsCount: 0 });
 
   const { 
     isOnline, 
     isInitialized, 
-    forceSync, 
     saveSale, 
-    getProducts,
-    hasPendingSync 
+    getProducts
   } = useOfflineSync({ autoInitialize: true, enableAutoSync: true });
 
   const fetchDashboardData = useCallback(async () => {
     if (!isInitialized) return;
     
     try {
-      let productsData;
+      let productsData: any[];
       if (isOnline) {
         try {
           const res = await api.get('/products');
@@ -114,7 +96,7 @@ const Dashboard: React.FC<{ language: 'EN' | 'TE' | 'HI'; user: UserData | null 
             ...prev,
             todaySales: analyticsRes.data.totalRevenue,
             lowStockCount: productsData.filter((p: any) => p.status === 'critical').length,
-            alertsCount: 0 // Fetch from alerts endpoint if available
+            alertsCount: 0
           }));
         } catch (onlineError) {
           productsData = await getProducts();
@@ -144,21 +126,6 @@ const Dashboard: React.FC<{ language: 'EN' | 'TE' | 'HI'; user: UserData | null 
       }
     } catch (err) {
       console.error('Error recording sale:', err);
-    }
-  };
-
-  const handleForceSync = async () => {
-    setSyncing(true);
-    try {
-      const result = await forceSync();
-      if (result.success) {
-        fetchDashboardData();
-      }
-      alert(result.message);
-    } catch (err) {
-      alert('Sync failed. Please try again.');
-    } finally {
-      setSyncing(false);
     }
   };
 
@@ -215,7 +182,7 @@ const Dashboard: React.FC<{ language: 'EN' | 'TE' | 'HI'; user: UserData | null 
           <button className="icon-btn" onClick={() => setShowSalesModal(true)}><Plus size={20} /></button>
         </div>
         <div className="stock-list">
-          {products.slice(0, 5).map(item => (
+          {products.slice(0, 8).map(item => (
             <div key={item.id} className={`stock-item ${item.status}`}>
               <div className="item-info">
                 <h4>{item.name}</h4>
@@ -244,7 +211,7 @@ const Dashboard: React.FC<{ language: 'EN' | 'TE' | 'HI'; user: UserData | null 
 
 // Main App Layout
 const MainLayout: React.FC<{ 
-  user: UserData | null; 
+  user: User; 
   onLogout: () => void;
   language: 'EN' | 'TE' | 'HI';
   setLanguage: (l: 'EN' | 'TE' | 'HI') => void;
@@ -254,16 +221,21 @@ const MainLayout: React.FC<{
   const [showBilling, setShowBilling] = useState(false);
   const { isOnline, hasPendingSync, forceSync } = useOfflineSync({ autoInitialize: true });
 
+  const handleSync = async () => {
+     const result = await forceSync();
+     alert(result.message);
+  };
+
   return (
     <div className="app-container">
-      <Sidebar language={language} user={user} onLogout={onLogout} />
+      <Sidebar language={language} />
       <main className="main-content">
         <header className="dashboard-header">
           <div>
             <h1>Namaste, {user?.name}!</h1>
             <div className="connection-status">
               {isOnline ? <span className="online"><Wifi size={14} /> Online</span> : <span className="offline"><WifiOff size={14} /> Offline</span>}
-              {hasPendingSync && <span className="pending-sync"><RefreshCw size={14} /> Pending Sync</span>}
+              {hasPendingSync && <span className="pending-sync" onClick={handleSync} style={{cursor: 'pointer'}}><RefreshCw size={14} /> Pending Sync</span>}
               <span className="user-plan"><Shield size={14} /> {user?.subscription_plan} Plan</span>
             </div>
           </div>
@@ -274,17 +246,17 @@ const MainLayout: React.FC<{
               ))}
             </div>
             <button className="icon-btn glass" onClick={() => setShowBilling(true)}><CreditCard size={20} /></button>
-            <button className="icon-btn glass" onClick={() => setShowProfile(true)}><User size={20} /></button>
+            <button className="icon-btn glass" onClick={() => setShowProfile(true)}><UserIcon size={20} /></button>
             <button className="icon-btn glass" onClick={onLogout}><LogOut size={20} /></button>
           </div>
         </header>
 
         {children}
 
-        {showProfile && <UserProfile user={user} onLogout={onLogout} language={language} onUpdateProfile={() => {}} />}
+        {showProfile && <UserProfile user={user} onLogout={onLogout} language={language} />}
         {showBilling && (
-          <div className="modal-overlay">
-            <div className="modal"><BillingDashboard language={language} user={user} onPlanUpgrade={() => {}} />
+          <div className="modal-overlay" onClick={() => setShowBilling(false)}>
+            <div className="modal" onClick={e => e.stopPropagation()}><BillingDashboard language={language} user={user} onPlanUpgrade={() => {}} />
             <button onClick={() => setShowBilling(false)} className="button-secondary" style={{margin: '20px'}}>Close</button>
             </div>
           </div>
@@ -296,13 +268,13 @@ const MainLayout: React.FC<{
 
 // Main App Component
 const App: React.FC = () => {
-  const [user, setUser] = useState<UserData | null>(() => {
+  const [user, setUser] = useState<User | null>(() => {
     const saved = localStorage.getItem('user');
     return saved ? JSON.parse(saved) : null;
   });
   const [language, setLanguage] = useState<'EN' | 'TE' | 'HI'>('EN');
 
-  const handleAuthSuccess = (userData: any, token: string) => {
+  const handleAuthSuccess = (userData: User, token: string) => {
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(userData));
     setUser(userData);
@@ -323,7 +295,7 @@ const App: React.FC = () => {
             <h1>Ganna.ai</h1>
             <p>Your AI-Powered Kirana Assistant</p>
           </div>
-          <AuthModal isOpen={true} onClose={() => {}} mode="login" onAuthSuccess={handleAuthSuccess} language={language} />
+          <AuthModal isOpen={true} mode="login" onAuthSuccess={handleAuthSuccess} language={language} />
           <div className="auth-footer">
              <div className="lang-toggle glass" style={{marginTop: '20px', justifyContent: 'center'}}>
               {(['EN', 'TE', 'HI'] as const).map(l => (

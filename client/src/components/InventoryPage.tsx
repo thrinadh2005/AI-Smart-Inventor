@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, AlertCircle, TrendingUp, Search, Filter } from 'lucide-react';
-import axios from 'axios';
+import api from '../services/api';
 
 interface Product {
   id: number;
@@ -151,7 +151,7 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ language }) => {
 
   const fetchProducts = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/products');
+      const res = await api.get('/products');
       setProducts(res.data);
     } catch (err) {
       console.error('Error fetching products:', err);
@@ -163,9 +163,9 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({ language }) => {
   const handleSaveProduct = async (product: Partial<Product>) => {
     try {
       if (editingProduct) {
-        await axios.put(`http://localhost:5000/api/products/${editingProduct.id}`, product);
+        await api.put(`/products/${editingProduct.id}`, product);
       } else {
-        await axios.post('http://localhost:5000/api/products', product);
+        await api.post('/products', product);
       }
       fetchProducts();
       setEditingProduct(null);
