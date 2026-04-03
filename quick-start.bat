@@ -46,6 +46,20 @@ echo.
 echo 📦 Installing dependencies...
 call npm install
 
+REM Install client dependencies
+echo.
+echo 📦 Installing frontend dependencies...
+cd client
+call npm install
+cd ..
+
+REM Install server dependencies
+echo.
+echo 📦 Installing backend dependencies...
+cd server
+call npm install
+cd ..
+
 if errorlevel 1 (
     echo ❌ Failed to install dependencies. Please check the error above.
     pause

@@ -48,6 +48,18 @@ fi
 echo "📦 Installing dependencies..."
 npm install
 
+# Install client dependencies
+echo "📦 Installing frontend dependencies..."
+cd client
+npm install
+cd ..
+
+# Install server dependencies
+echo "📦 Installing backend dependencies..."
+cd server
+npm install
+cd ..
+
 # Check if installation was successful
 if [ $? -ne 0 ]; then
     echo "❌ Failed to install dependencies. Please check the error above."
