@@ -160,13 +160,13 @@ class BillingManager {
       throw new Error('Invalid subscription plan');
     }
 
-    const paymentId = await this.db.run(
+    const paymentResult = await this.db.run(
       'INSERT INTO payments (user_id, subscription_plan_id, amount, payment_method, payment_id, status) VALUES (?, ?, ?, ?, ?, ?)',
       [userId, planId, plan.price, paymentMethod, paymentId, 'pending']
     );
 
     return {
-      paymentId: paymentId.lastID,
+      paymentId: paymentResult.lastID,
       amount: plan.price,
       planName: plan.name,
       durationDays: plan.duration_days

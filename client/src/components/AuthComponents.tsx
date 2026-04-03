@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { User, Lock, Mail, Phone, MapPin, CreditCard, Eye, EyeOff, LogOut, Settings, X } from 'lucide-react';
 import axios from 'axios';
 

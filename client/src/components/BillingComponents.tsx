@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CreditCard, TrendingUp, Calendar, Download, CheckCircle, AlertTriangle, Clock, DollarSign, Package, Users, Zap } from 'lucide-react';
+import { CreditCard, TrendingUp, Calendar, Download, CheckCircle, X, Wallet, Package, Users } from 'lucide-react';
 import axios from 'axios';
 
 interface Plan {
@@ -15,11 +15,13 @@ interface Plan {
 }
 
 interface Payment {
+  id: number;
   paymentId: string;
   amount: number;
   planName: string;
   durationDays: number;
   status: string;
+  created_at: string;
 }
 
 interface Invoice {
@@ -160,14 +162,14 @@ const translations = {
 
 export const PlanCard: React.FC<{ plan: Plan; isCurrent: boolean; onSelect: () => void; language: 'EN' | 'TE' | 'HI' }> = ({ plan, isCurrent, onSelect, language }) => {
   const t = translations[language];
-  
+
   return (
     <div className={`plan-card ${isCurrent ? 'current' : ''}`}>
       <div className="plan-header">
         <h3>{plan.name}</h3>
         <div className="plan-price">
           <span className="price">₹{plan.price}</span>
-          <span className="duration">{t.duration_days === 30 ? t.monthly : t.yearly}</span>
+          <span className="duration">{plan.duration_days === 30 ? t.monthly : t.yearly}</span>
         </div>
         {isCurrent && <span className="current-badge">{t.currentPlan}</span>}
       </div>
@@ -187,7 +189,7 @@ export const PlanCard: React.FC<{ plan: Plan; isCurrent: boolean; onSelect: () =
         </div>
         <div className="feature-item">
           <Package size={16} className="feature-icon" />
-          <span>{t.support}: {t[plan.support_level]}</span>
+          <span>{t.support}: {plan.support_level === 'basic' ? t.basicSupport : plan.support_level === 'priority' ? t.prioritySupport : t.dedicatedSupport}</span>
         </div>
       </div>
 
@@ -220,10 +222,13 @@ export const BillingDashboard: React.FC<BillingComponentsProps> = ({ language, u
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [token, setToken] = useState<string | null>(null);
 
   const t = translations[language];
 
   useEffect(() => {
+    const savedToken = localStorage.getItem('token');
+    setToken(savedToken);
     fetchBillingData();
   }, [user]);
 
@@ -231,9 +236,15 @@ export const BillingDashboard: React.FC<BillingComponentsProps> = ({ language, u
     try {
       const [plansRes, billingRes, invoicesRes, paymentsRes] = await Promise.all([
         axios.get('http://localhost:5000/api/billing/plans'),
-        axios.get(`http://localhost:5000/api/billing/subscription`),
-        axios.get(`http://localhost:5000/api/billing/invoices`),
-        axios.get(`http://localhost:5000/api/billing/payments`)
+        axios.get(`http://localhost:5000/api/billing/subscription`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        axios.get(`http://localhost:5000/api/billing/invoices`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        axios.get(`http://localhost:5000/api/billing/payments`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
       ]);
 
       setPlans(plansRes.data.plans);
@@ -260,15 +271,21 @@ export const BillingDashboard: React.FC<BillingComponentsProps> = ({ language, u
     if (!selectedPlan) return;
 
     try {
-      const payment = await billingManager.createPayment(user.id, selectedPlan.id, paymentMethod);
+      // Create payment via API
+      const response = await axios.post('http://localhost:5000/api/billing/subscribe', 
+        { planId: selectedPlan.id, paymentMethod },
+        { headers: { Authorization: `Bearer ${token}` }}
+      );
       
-      // In a real app, this would integrate with payment gateway
-      // For demo, we'll simulate success
+      // Simulate payment success for demo
       const gatewayResponse = { status: 'success', transactionId: 'txn_' + Date.now() };
       
-      const result = await billingManager.processPayment(payment.paymentId, gatewayResponse);
+      const result = await axios.post('http://localhost:5000/api/billing/payment-success', 
+        { paymentId: response.data.payment.paymentId, gatewayResponse },
+        { headers: { Authorization: `Bearer ${token}` }}
+      );
       
-      if (result.status === 'completed') {
+      if (result.data.success) {
         setShowPaymentModal(false);
         setSelectedPlan(null);
         fetchBillingData();
@@ -295,15 +312,15 @@ export const BillingDashboard: React.FC<BillingComponentsProps> = ({ language, u
           <h3>{t.currentPlan}</h3>
           <div className="subscription-details">
             <div className="detail-item">
-              <span>{t.expires}:</span>
+              <span>Expires:</span>
               <span>{billingSummary?.expires ? new Date(billingSummary.expires).toLocaleDateString() : 'Lifetime'}</span>
             </div>
             <div className="detail-item">
-              <span>{t.apiCalls}:</span>
-              <span>{billingSummary?.usageStats?.api_calls || 0} / 1000 / 1000 / billingSummary?.usageStats?.api_calls || 0} / 1000 / 1000}</span>
+              <span>API Calls:</span>
+              <span>{billingSummary?.usageStats?.api_calls || 0} / 1000</span>
             </div>
           </div>
-          <button className="button-primary" onClick={() => onPlanUpgrade()}>
+          <button className="button-primary" onClick={() => onPlanUpgrade(1)}>
             {t.upgradeNow}
           </button>
         </div>
