@@ -2,6 +2,71 @@
 
 A comprehensive AI-powered inventory management solution specifically designed for Indian shops and small businesses. Features intelligent demand prediction, multilingual voice input (English, Telugu, Hindi), and complete offline capabilities.
 
+## 🚀 **QUICK LOCAL LAUNCH**
+
+### ⚡ One-Click Local Setup
+
+**Prerequisites:**
+- Node.js (v14 or higher) installed on your system
+
+**Launch Commands:**
+```bash
+# 1. Clone the repository
+git clone https://github.com/thrinadh2005/AI-Smart-Inventor.git
+cd AI-Smart-Inventor
+
+# 2. Install dependencies
+npm install
+
+# 3. Launch the application
+npm start
+```
+
+**🌐 Access Points:**
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:5000
+
+**📱 Mobile Access:**
+Use your phone's browser and navigate to `http://YOUR_COMPUTER_IP:5173`
+
+---
+
+### 🎯 **Local Launch Button**
+
+**Option 1: One-Click Script (Recommended)**
+
+**For Linux/Mac:**
+```bash
+curl -sSL https://raw.githubusercontent.com/thrinadh2005/AI-Smart-Inventor/main/quick-start.sh | bash
+```
+
+**For Windows:**
+```cmd
+powershell -Command "iwr -useb https://raw.githubusercontent.com/thrinadh2005/AI-Smart-Inventor/main/quick-start.bat | cmd"
+```
+
+**Option 2: Manual Setup**
+*Execute the steps in the "Launch Commands" section above for full control*
+
+---
+
+### 📱 **Mobile Access Setup**
+
+1. **Find your computer's IP address:**
+   - **Windows**: Open Command Prompt and type `ipconfig`
+   - **Mac/Linux**: Open Terminal and type `ifconfig` or `hostname -I`
+
+2. **Access from mobile:**
+   - Open phone browser → `http://YOUR_COMPUTER_IP:5173`
+   - Example: `http://192.168.1.100:5173`
+
+3. **Enable mobile features:**
+   - Voice input works on mobile Chrome
+   - Touch-friendly interface
+   - Offline capabilities
+
+---
+
 ## 🌟 Key Features
 
 ### 🤖 AI-Powered Intelligence
